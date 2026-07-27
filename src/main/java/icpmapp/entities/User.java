@@ -57,6 +57,16 @@ public class User implements UserDetails {
     private List<Message> readMessages;
     private LocalDateTime lastDownloadMessages;
     private LocalDateTime lastDownloadPictures;
+    
+    private LocalDateTime createdAt;
+    private LocalDateTime lastLogin;
+    private Boolean isActive = true;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        isActive = true;
+    }
 
     public User() { }
 

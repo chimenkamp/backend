@@ -130,6 +130,12 @@ public class AccountController {
         return ResponseEntity.ok(userService.getName(username));
     }
 
-
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    @GetMapping("/isAdmin")
+    public ResponseEntity<Boolean> isAdmin(@RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+        String token = authorizationHeader.substring(7);
+        String username = jwtService.extractUserName(token);
+        return ResponseEntity.ok(userService.isAdmin(username));
+    }
 
 }

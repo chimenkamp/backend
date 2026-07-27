@@ -77,4 +77,11 @@ public class UserServiceImpl implements UserService {
         getNameResponse.setLastname(user.getLastname());
         return getNameResponse;
     }
+
+    @Override
+    public boolean isAdmin(String username) {
+        User user = userRepository.findByEmail(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
+        return user.getRole() == icpmapp.entities.Role.ADMIN;
+    }
 }

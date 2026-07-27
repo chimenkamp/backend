@@ -1,2 +1,6 @@
 /target/
 /uploads/*
+/instance/*
+!/instance/.gitkeep
+*.mv.db
+*.trace.db

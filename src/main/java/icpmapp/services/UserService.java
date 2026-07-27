@@ -21,4 +21,6 @@ public interface UserService {
     UsernameResponse getName(String username);
 
     User getUser(String username);
+
+    boolean isAdmin(String username);
 }

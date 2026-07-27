@@ -23,6 +23,12 @@ public class SessionHeader {
     @OneToOne(mappedBy = "header", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private SessionContent content;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "track_id")
+    private Track track;
+
+    private Boolean isPublished = false;
+
     public SessionHeader(LocalDateTime of, LocalDateTime of1, String alice, String mainHall, String openingKeynote, SessionType type) {
         this.startTime = of;
         this.endTime = of1;

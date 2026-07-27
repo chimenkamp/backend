@@ -6,6 +6,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import icpmapp.services.JWTService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,22 @@ import java.util.function.Function;
 @Service
 public class JWTServiceImpl implements JWTService {
 
+    private final Key signingKey;
+
+    public JWTServiceImpl(@Value("${conferia.jwt-secret}") String signingSecret) {
+        if (signingSecret == null || signingSecret.isBlank()) {
+            throw new IllegalStateException("CONFERIA_JWT_SECRET must be configured");
+        }
+        try {
+            byte[] key = Decoders.BASE64.decode(signingSecret);
+            this.signingKey = Keys.hmacShaKeyFor(key);
+        } catch (RuntimeException exception) {
+            throw new IllegalStateException(
+                "CONFERIA_JWT_SECRET must be a Base64-encoded key of at least 256 bits",
+                exception
+            );
+        }
+    }
 
     public String generateToken(UserDetails userDetails){
         return Jwts.builder().setSubject(userDetails.getUsername())
@@ -43,8 +60,7 @@ public class JWTServiceImpl implements JWTService {
     }
 
     private Key getSigninKey(){
-        byte[] key = Decoders.BASE64.decode("8HMAnIuSaJewPZpV2ah13uLOmySq7wE+kpmRWffu0rg=");
-        return Keys.hmacShaKeyFor(key);
+        return signingKey;
     }
 
     private Claims extractAllClaims(String token){

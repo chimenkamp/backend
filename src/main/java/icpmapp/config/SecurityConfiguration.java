@@ -7,6 +7,7 @@ import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactor
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -24,6 +25,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -34,14 +36,26 @@ public class SecurityConfiguration {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserService userService;
 
+    @Value("${conferia.cors.allowed-origins:http://localhost:5173}")
+    private String allowedOrigins;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource())).
                 csrf(AbstractHttpConfigurer::disable)
+                // Allow H2 console to be displayed in frames
+                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.sameOrigin()))
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("**").permitAll()
-//                        .requestMatchers("/api/v1/auth/**").permitAll()
-//                        .requestMatchers("/api/v1/gallery/images/{filepath}").permitAll()
+                        .requestMatchers(
+                                "/api/v1/setup/**",
+                                "/api/v1/auth/**",
+                                "/api/v1/config/**",
+                                "/api/v1/pages/public",
+                                "/api/v1/pages/slug/**",
+                                "/api/v1/media/**",
+                                "/api/v1/account/getProfilePicture/**",
+                                "/h2-console/**"
+                        ).permitAll()
                         .anyRequest().authenticated())
 
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -54,19 +68,15 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-//        configuration.setAllowedOriginPatterns(Arrays.asList("*",
-//                "https://localhost*",
-//                "http://localhost*",
-//                "https://icpm.compute.dtu.dk")); // Specify your frontend origin
-        configuration.setAllowedOrigins(Arrays.asList("*"));
-//                "https://localhost*",
-//                "http://localhost*",
-//                "https://icpm.compute.dtu.dk")); // Specify your frontend origin
-        configuration.setAllowedMethods(Arrays.asList("*")); //"GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("*")); //"Authorization", "Content-Type"));
-//        configuration.setAllowCredentials(true);
+        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .toList();
+        configuration.setAllowedOriginPatterns(origins);
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // Apply this configuration to all paths
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 

@@ -8,5 +8,7 @@ import java.nio.file.AccessDeniedException;
 public interface EmailService {
     void sendSignup(EmailRequest emailRequest) throws AccessDeniedException, MessagingException;
 
-   void sendResetPassword(EmailRequest emailRequest) throws AccessDeniedException, MessagingException;
+    void sendResetPassword(EmailRequest emailRequest) throws AccessDeniedException, MessagingException;
+
+    void sendEmail(String to, String subject, String body) throws MessagingException;
 }

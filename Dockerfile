@@ -10,5 +10,5 @@ COPY target/conferia-backend-1.0-SNAPSHOT.jar app.jar
 # Expose port 8080
 EXPOSE 8080
 
-# Run the jar file with the Docker profile
+# Run the jar file with the Docker profile.
 ENTRYPOINT ["java", "-jar", "app.jar", "--spring.profiles.active=docker"]

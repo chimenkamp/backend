@@ -1,36 +1,26 @@
-version: '3.8'
+version: "3.8"
 
 services:
   backend:
     build: .
     ports:
       - "8080:8080"
-    depends_on:
-      - db
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/spring_security
-      SPRING_DATASOURCE_USERNAME: conference
-      SPRING_DATASOURCE_PASSWORD: 123qwe
-      SPRING_MAIL_HOST: smtp.gmail.com
-      SPRING_MAIL_PORT: 587
-      SPRING_MAIL_AUTH: yes
-      SPRING_MAIL_USERNAME: noreply.ICPM24@gmail.com
-      SPRING_MAIL_PASSWORD: smcypgmeryupfovx
-      FILE_UPLOAD_DIR: /app/uploads
+      CONFERIA_DB_PATH: /app/instance/conferia
+      CONFERIA_DB_USERNAME: ${CONFERIA_DB_USERNAME:-sa}
+      CONFERIA_DB_PASSWORD: ${CONFERIA_DB_PASSWORD:-}
+      CONFERIA_UPLOAD_DIR: /app/instance/uploads
+      CONFERIA_SETUP_TOKEN: ${CONFERIA_SETUP_TOKEN}
+      CONFERIA_JWT_SECRET: ${CONFERIA_JWT_SECRET}
+      CONFERIA_CORS_ALLOWED_ORIGINS: ${CONFERIA_CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+      CONFERIA_BASE_URL: ${CONFERIA_BASE_URL:-http://localhost:8080}
+      CONFERIA_FRONTEND_URL: ${CONFERIA_FRONTEND_URL:-http://localhost:5173}
+      CONFERIA_MAIL_HOST: ${CONFERIA_MAIL_HOST:-localhost}
+      CONFERIA_MAIL_PORT: ${CONFERIA_MAIL_PORT:-1025}
+      CONFERIA_MAIL_FROM: ${CONFERIA_MAIL_FROM:-}
+      CONFERIA_MAIL_USERNAME: ${CONFERIA_MAIL_USERNAME:-}
+      CONFERIA_MAIL_PASSWORD: ${CONFERIA_MAIL_PASSWORD:-}
+      CONFERIA_MAIL_AUTH: ${CONFERIA_MAIL_AUTH:-false}
+      CONFERIA_MAIL_STARTTLS: ${CONFERIA_MAIL_STARTTLS:-false}
     volumes:
-      - ./uploads:/app/uploads
-
-  db:
-    image: mysql:8.0
-    environment:
-      MYSQL_DATABASE: spring_security
-      MYSQL_USER: conference
-      MYSQL_PASSWORD: 123qwe
-      MYSQL_ROOT_PASSWORD: root_password
-    ports:
-      - "3306:3306"
-    volumes:
-      - db_data:/var/lib/mysql
-
-volumes:
-  db_data:
+      - ./instance:/app/instance
