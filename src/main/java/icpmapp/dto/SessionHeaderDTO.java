@@ -18,6 +18,9 @@ public class SessionHeaderDTO {
     private LocalDateTime endTime;
     private SessionType type;
     private Long likes;
+    private String trackId;
+    private String trackName;
+    private String trackColor;
 
     public SessionHeaderDTO(SessionHeader sessionHeader) {
         this.id = sessionHeader.getId();
@@ -28,5 +31,10 @@ public class SessionHeaderDTO {
         this.endTime = sessionHeader.getEndTime();
         this.type = sessionHeader.getType();
         this.likes = 0l;
+        if (sessionHeader.getTrack() != null) {
+            this.trackId = sessionHeader.getTrack().getId();
+            this.trackName = sessionHeader.getTrack().getName();
+            this.trackColor = sessionHeader.getTrack().getColor();
+        }
     }
 }

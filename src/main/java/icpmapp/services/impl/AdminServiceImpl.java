@@ -531,6 +531,7 @@ public class AdminServiceImpl implements AdminService {
         if (!sessionHeaderRepository.existsById(id)) {
             throw new RuntimeException("Session not found");
         }
+        sessionHeaderRepository.deleteAllLikesForSession(id);
         sessionHeaderRepository.deleteById(id);
     }
 
