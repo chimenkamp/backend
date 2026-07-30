@@ -3,6 +3,7 @@ package icpmapp.services;
 import icpmapp.dto.SessionHeaderDTO;
 import icpmapp.entities.SessionHeader;
 import icpmapp.entities.Track;
+import icpmapp.entities.User;
 import icpmapp.repository.SessionContentRepository;
 import icpmapp.repository.SessionHeaderRepository;
 import icpmapp.repository.UserRepository;
@@ -78,5 +79,26 @@ class AgendaServiceImplTest {
         assertEquals("Research", result.get(0).getTrackName());
         assertEquals("#5e81ac", result.get(0).getTrackColor());
         assertTrue(result.stream().noneMatch(item -> item.getId().equals(8L)));
+    }
+
+    @Test
+    void resolvesTheCurrentUsersFavoriteSessionsFromTheJwtUsername() {
+        SessionHeaderRepository sessions = mock(SessionHeaderRepository.class);
+        UserRepository users = mock(UserRepository.class);
+        AgendaServiceImpl service = new AgendaServiceImpl(
+            sessions,
+            mock(SessionContentRepository.class),
+            users
+        );
+        User currentUser = new User();
+        currentUser.setId(9);
+        currentUser.setEmail("attendee@example.com");
+        when(users.findByEmail("attendee@example.com")).thenReturn(java.util.Optional.of(currentUser));
+        when(sessions.findByLikes_Id(9)).thenReturn(List.of());
+
+        List<SessionHeaderDTO> result = service.findLikedSessionsByUsername("attendee@example.com");
+
+        assertTrue(result.isEmpty());
+        verify(sessions).findByLikes_Id(9);
     }
 }

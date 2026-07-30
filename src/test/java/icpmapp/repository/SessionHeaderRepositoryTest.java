@@ -67,6 +67,35 @@ class SessionHeaderRepositoryTest {
         assertEquals(false, sessions.existsById(session.getId()));
     }
 
+    @Test
+    void reminderQueryReturnsOnlyPublishedFavoritesInsideTheMinuteWindow() {
+        Track research = tracks.save(new Track("Research", "#5e81ac"));
+        SessionHeader due = session("Due favorite", true, research);
+        due.setStartTime(LocalDateTime.of(2026, 8, 3, 9, 15, 30));
+        SessionHeader outsideWindow = session("Later favorite", true, research);
+        outsideWindow.setStartTime(LocalDateTime.of(2026, 8, 3, 9, 16));
+        SessionHeader draft = session("Draft favorite", false, research);
+        draft.setStartTime(LocalDateTime.of(2026, 8, 3, 9, 15, 30));
+        sessions.saveAll(List.of(due, outsideWindow, draft));
+
+        User user = new User();
+        user.setEmail("reminders@example.com");
+        user.setPassword("test-password");
+        user.setFirstname("Reminder");
+        user.setLastname("Attendee");
+        user.setRole(Role.USER);
+        user.setLikedBy(new ArrayList<>(List.of(due, outsideWindow, draft)));
+        users.saveAndFlush(user);
+
+        List<SessionHeader> result = sessions.findUpcomingLikedSessions(
+            user.getId(),
+            LocalDateTime.of(2026, 8, 3, 9, 15),
+            LocalDateTime.of(2026, 8, 3, 9, 16)
+        );
+
+        assertEquals(List.of(due), result);
+    }
+
     private SessionHeader session(String name, boolean published, Track track) {
         SessionHeader session = new SessionHeader();
         session.setName(name);

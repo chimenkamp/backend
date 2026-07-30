@@ -5,6 +5,7 @@ import org.h2.tools.RunScript;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -15,6 +16,7 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -58,14 +60,21 @@ class LegacySchemaCompatibilityTest {
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> runApplication(url));
 
+        String diagnostic = completeMessage(exception);
+        String normalizedDiagnostic = diagnostic.toLowerCase(Locale.ROOT);
         assertTrue(
-            completeMessage(exception).contains("Schema-validation")
-                || completeMessage(exception).contains("missing table")
+            diagnostic.contains("Schema-validation")
+                || normalizedDiagnostic.contains("missing table")
+                || (normalizedDiagnostic.contains("table \"users\" not found")
+                    && normalizedDiagnostic.contains(
+                        "migration v3__add_agenda_push_reminders.sql failed")),
+            diagnostic
         );
     }
 
     private ConfigurableApplicationContext runApplication(String url) {
         SpringApplication application = new SpringApplication(ConferiaApplication.class);
+        application.setWebApplicationType(WebApplicationType.NONE);
         return application.run(
             "--spring.datasource.url=" + url,
             "--spring.datasource.username=sa",

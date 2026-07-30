@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Repository
 public interface SessionHeaderRepository extends JpaRepository<SessionHeader, Long> {
@@ -45,5 +46,21 @@ public interface SessionHeaderRepository extends JpaRepository<SessionHeader, Lo
         ORDER BY sh.startTime
         """)
     List<SessionHeaderDTO> findPublishedSessionsWithLikes();
+
+    @Query("""
+        SELECT sh
+        FROM SessionHeader sh
+        JOIN sh.likes user
+        WHERE user.id = :userId
+          AND sh.isPublished = true
+          AND sh.startTime >= :fromInclusive
+          AND sh.startTime < :toExclusive
+        ORDER BY sh.startTime
+        """)
+    List<SessionHeader> findUpcomingLikedSessions(
+        @Param("userId") Integer userId,
+        @Param("fromInclusive") LocalDateTime fromInclusive,
+        @Param("toExclusive") LocalDateTime toExclusive
+    );
 
 }

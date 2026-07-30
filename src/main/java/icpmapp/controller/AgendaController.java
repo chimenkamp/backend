@@ -4,12 +4,18 @@ import lombok.RequiredArgsConstructor;
 import icpmapp.dto.SessionDTO;
 import icpmapp.dto.SessionHeaderDTO;
 import icpmapp.dto.requests.SessionLikeRequest;
+import icpmapp.dto.requests.AgendaPushSubscriptionRequest;
+import icpmapp.dto.requests.AgendaPushUnsubscribeRequest;
+import icpmapp.dto.responses.PushReminderConfigResponse;
 import icpmapp.entities.SessionHeader;
 import icpmapp.repository.SessionHeaderRepository;
+import icpmapp.services.AgendaReminderService;
 import icpmapp.services.AgendaService;
 import icpmapp.services.JWTService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +26,7 @@ import java.util.List;
 public class AgendaController {
     private final SessionHeaderRepository sessionHeaderRepository;
     private final AgendaService agendaService;
+    private final AgendaReminderService agendaReminderService;
     private final JWTService jwtService;
 
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
@@ -65,6 +72,16 @@ public class AgendaController {
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @GetMapping("/session/liked")
+    public ResponseEntity<List<SessionHeaderDTO>> findCurrentUsersLikedSessions(
+        Authentication authentication
+    ) {
+        return ResponseEntity.ok(
+            agendaService.findLikedSessionsByUsername(authentication.getName())
+        );
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     @GetMapping("/session/hearts")
     public ResponseEntity<List<Long>> HeartedSessions(@RequestHeader(value = "Authorization", required = false) String authorizationHeader){
         String token = authorizationHeader.substring(7);
@@ -72,5 +89,30 @@ public class AgendaController {
         return ResponseEntity.ok(agendaService.HeartedSessions(username));
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @GetMapping("/reminders/config")
+    public ResponseEntity<PushReminderConfigResponse> getReminderConfig() {
+        return ResponseEntity.ok(agendaReminderService.getConfig());
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @PostMapping("/reminders/subscriptions")
+    public ResponseEntity<Void> subscribeToReminders(
+        Authentication authentication,
+        @Valid @RequestBody AgendaPushSubscriptionRequest request
+    ) {
+        agendaReminderService.subscribe(authentication.getName(), request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    @DeleteMapping("/reminders/subscriptions")
+    public ResponseEntity<Void> unsubscribeFromReminders(
+        Authentication authentication,
+        @Valid @RequestBody AgendaPushUnsubscribeRequest request
+    ) {
+        agendaReminderService.unsubscribe(authentication.getName(), request.endpoint());
+        return ResponseEntity.noContent().build();
+    }
 
 }

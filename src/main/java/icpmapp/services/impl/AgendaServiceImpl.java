@@ -120,6 +120,15 @@ public class AgendaServiceImpl implements AgendaService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<SessionHeaderDTO> findLikedSessionsByUsername(String username) {
+        User user = userRepository.findByEmail(username)
+            .orElseThrow(() -> new UsernameNotFoundException(
+                "User not found with email: " + username
+            ));
+        return findLikedSessionsByUser(user.getId());
+    }
+
     public SessionHeaderDTO convertToDto(SessionHeader session) {
         String trackId = session.getTrack() != null ? session.getTrack().getId() : null;
         String trackName = session.getTrack() != null ? session.getTrack().getName() : null;
