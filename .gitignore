@@ -4,3 +4,5 @@
 !/instance/.gitkeep
 *.mv.db
 *.trace.db
+
+.env
